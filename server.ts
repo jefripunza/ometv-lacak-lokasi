@@ -2,6 +2,7 @@ import {
   Status,
   STATUS_TEXT,
 } from "https://deno.land/std@0.148.0/http/http_status.ts";
+import { generate as uuid4 } from "https://deno.land/std@0.62.0/uuid/v4.ts";
 
 let apiKey = "6dec77b2d7964543bb952496358fb67c";
 
@@ -13,10 +14,11 @@ const cors_header = {
 };
 
 const ip_save: string[] = [];
-const webSockets: WebSocket[] = [];
+const webSockets: { [key: string]: WebSocket } = {};
 
 function sendMessageToAll(message: string) {
-  webSockets.forEach((socket) => {
+  Object.keys(webSockets).forEach((key) => {
+    const socket = webSockets[key];
     socket.send(message);
   });
 }
@@ -99,9 +101,9 @@ Deno.serve({ port: 8080 }, async (request) => {
       function updateMap(latitude, longitude) {
         const myCenter = new google.maps.LatLng(latitude, longitude);
         const mapProp = {
-          zoom: 16,
+          zoom: 10,
           center: myCenter,
-          mapTypeId: google.maps.MapTypeId.ROADMAP
+          mapTypeId: google.maps.MapTypeId.ROADMAP,
         };
         const map = new google.maps.Map(document.getElementById("googleMap"), mapProp);
         const marker = new google.maps.Marker({
@@ -124,6 +126,14 @@ Deno.serve({ port: 8080 }, async (request) => {
         document.getElementById('time').innerHTML = json.time_zone.current_time;
         document.getElementById('coords').innerHTML = \`(\${latitude}, \${longitude})\`;
       };
+      setInterval(()=>{
+        try {
+          const dismissButton = document.querySelector(".dismissButton");
+          if (dismissButton != null) {
+            dismissButton.click();
+          }
+        } catch (err) {}
+      }, 500);
     </script>
   </body>
 </html>`,
@@ -138,10 +148,16 @@ Deno.serve({ port: 8080 }, async (request) => {
     if (request.headers.get("upgrade") != "websocket") {
       return new Response(null, { status: 501 });
     }
+    const sid = uuid4();
     const { socket, response } = Deno.upgradeWebSocket(request);
-    socket.addEventListener("open", () => {
-      console.log("a client connected!");
-      webSockets.push(socket);
+
+    socket.addEventListener("open", (event) => {
+      webSockets[sid] = socket;
+      console.log(`client ${sid} connected!`);
+    });
+    socket.addEventListener("close", (event) => {
+      delete webSockets[sid];
+      console.log(`client ${sid} disconnected!`);
     });
     socket.addEventListener("message", (event) => {
       if (event.data === "ping") {

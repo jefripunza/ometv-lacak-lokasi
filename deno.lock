@@ -1,6 +1,8 @@
 {
   "version": "3",
   "remote": {
-    "https://deno.land/std@0.148.0/http/http_status.ts": "897575a7d6bc2b9123f6a38ecbc0f03d95a532c5d92029315dc9f508e12526b8"
+    "https://deno.land/std@0.148.0/http/http_status.ts": "897575a7d6bc2b9123f6a38ecbc0f03d95a532c5d92029315dc9f508e12526b8",
+    "https://deno.land/std@0.62.0/uuid/_common.ts": "6fd4cb11fb959d6181fe91e7e0be77a91a0aee4dfea5fbc6cb768f1b56404298",
+    "https://deno.land/std@0.62.0/uuid/v4.ts": "6452fea17180252ba181f93be2b35ddccb156130f2d07c5539f097b6a172f7ee"
   }
 }
